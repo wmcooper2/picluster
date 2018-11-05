@@ -4,6 +4,9 @@
 #stand lib
 import subprocess
 
+#custom
+from pi_ipaddresses import *
+
 def reboot(pi):
     """Reboot pi. Returns None."""
     command = "ssh {0} 'sudo reboot'".format(pi)
@@ -31,12 +34,13 @@ def cluster_shutdown():
 
 
 if __name__ == "__main__":
-    pi0 = ""
-    pi1 = ""
-    pi2 = ""
-    pi3 = ""
+#    pi0 = "pi@"
+#    pi1 = "pi@"
+#    pi2 = "pi@"
+#    pi3 = "pi@"
 #    cluster = [pi0, pi1, pi2, pi3]
 #    cluster_reboot(cluster)
 #    reboot(cluster[0])
-    shutdown(cluster[0])
+#    shutdown(cluster[0])
+    pass
 
