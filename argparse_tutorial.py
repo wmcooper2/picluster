@@ -15,10 +15,10 @@ parser = argparse.ArgumentParser(description="")
 #parser.add_argument("echo", help="echo the string that you put here.")
 
 # integer as argument
-#parser.add_argument("square", help="display the square of a given number.", type=int)
+parser.add_argument("square", help="display the square of a given number.", type=int)
 
 # optional argument
-parser.add_argument("--verbose", help="display verbose messages.")
+parser.add_argument("-v", "--verbose", help="display verbose messages.", action="store_true")
 
 args = parser.parse_args()
 
@@ -27,6 +27,9 @@ args = parser.parse_args()
 
 #print(args.square**2)
 
+
+answer = args.square**2
 if args.verbose:
-    print("some extra verbosity")
+#    print("some extra verbosity")
+    print("The square of {} is {}".format(args.square, answer))
 
