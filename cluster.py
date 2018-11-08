@@ -4,6 +4,7 @@
 #stand lib
 import argparse as ap
 import subprocess
+from time import sleep
 
 #custom
 from pi_ipaddresses import *
@@ -23,24 +24,50 @@ def show_outputs():
         print(str(pi_outputs.index(output)), "::", output)
 
 def valid(value):
-    """Determines validity. Returns Boolean."""
+    """Determines validity of arguments. Returns Boolean."""
+    #if all values are in valid args and the length of the argument list is
+    #+ equal to or less than valid_args
     return value in valid_args
 
-def format_command(arg):
+def format_pi_name(arg):
     """Formats the command. Returns String."""
-    if valid(arg):
-        cmd = "pi"+arg
-        return cmd
+    cmd = "pi@"+arg
+    return cmd
 
-def _reboot(cluster):
+def print_kwargs():
+    """Displays kwargs given at command line. Returns None."""
+    for _, value in args._get_kwargs():
+        given_args.append(value)
+        print(_, "::", value)
+
+def print_pi_outputs():
+    """Displays contents of pi_outputs. Returns None."""
+    [print(out.stdout) for out in pi_outputs]
+
+def _reboot(pi):
     """Reboots all the nodes in cluster. Returns None."""
-    clear_terminal()
-    for pi in cluster:
-        command = "ssh pi@"+pi+" 'sudo reboot'"
-        print("command ::", command)
-        c = subprocess.Popen(command, encoding='utf-8', 
-                             stdout=subprocess.PIPE, shell=True)
-        pi_outputs.append(c.stdout)
+    name = format_pi_name(cluster[int(pi)])
+    cmd = "ssh "+name+" 'sudo reboot'"
+    c = subprocess.Popen(cmd, encoding='utf-8', 
+                         stdout=subprocess.PIPE, shell=True)
+    pi_outputs.append(c.stdout)
+#    print(cmd)
+
+def _shutdown(pi):
+    """Shutsdown all the nodes in cluster. Returns None."""
+    name = format_pi_name(cluster[int(pi)])
+    cmd = "ssh "+name+" 'sudo shutdown -h now'"
+    c = subprocess.Popen(cmd, encoding='utf-8', 
+                         stdout=subprocess.PIPE, shell=True)
+
+def _name(pi):
+    """Gets the name of the machine. Returns String."""
+    name = format_pi_name(cluster[int(pi)])
+    cmd = "ssh "+name+" 'hostname'"
+    c = subprocess.Popen(cmd, encoding='utf-8',
+                         stdout=subprocess.PIPE, shell=True)
+    for line in c.stdout:
+        print(line.strip())
 
 # Main
 parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
@@ -49,32 +76,22 @@ group.add_argument("-r", "--reboot", help="Reboots the cluster.",
     nargs="?",const=["0", "1", "2", "3"])
 group.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
     nargs="?",const=["0", "1", "2", "3"])
-
-# not needed
-#group.add_argument("-s", "--shutdown", help="Shutdown the cluster.", 
-#    action="store_true")
-#group.add_argument("--rebootpi", help="Reboots a single pi.")
-#group.add_argument("--shutdownpi", help="Shutdown a single pi.")
+group.add_argument("-n", "--name", help="Displays the name of the node.",
+    nargs="?",const=["0", "1", "2", "3"])
 
 args = parser.parse_args()
+clear_terminal()
+
+#newline for nice output format
+print("\n")
 
 if args.reboot:
-#    for arg in given_args[0]:
-#        if arg!=None:
-#            print(format_command(arg))
-    print(args.reboot)
+    [_reboot(arg) for arg in args.reboot]
 elif args.shutdown:
-#    for arg in given_args[0]:
-#        if arg!=None:
-#            print(format_command(arg))
+    [_shutdown(arg) for arg in args.shutdown]
+elif args.name:
+    [_name(arg) for arg in args.name]
 
-    print(args.shutdown)
-for _, value in args._get_kwargs():
-    given_args.append(value)
-    print(_, "::", value)
 
-#print("given_args::", given_args)
-
-#for arg in given_args[0]:
-#    if arg!=None:
-#        print(format_command(arg))
+# End program
+parser.exit(status=0, message="Finished.\n")
