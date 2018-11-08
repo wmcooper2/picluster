@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Commands to control the pi-cluster."""
 
+
+#To do:
+    # set up usb mounting/unmounting
+    # set up passing a search string to the nodes
+    # set up a script in each node that saves results of a search on the local node and then another command to check that the processes are finished, then another to retrieve the results?
+    # refactor the code, too much duplication already (use dict switchcase), pass in the key word name of the value that does not have "None" as a value for the key to the dict that returns a function.
+
 #stand lib
 import argparse as ap
 import subprocess
@@ -79,6 +86,14 @@ def _ipaddr(pi):
     #grep the line with "inet "
     #print the pi's name too
 
+def mountusb():
+    """Mount the usb drives to the nodes. Returns None."""
+    pass
+
+def unmountusb():
+    """Unmounts the usb drives from the nodes. Returns None."""
+    pass
+
 # Main
 parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
 group = parser.add_mutually_exclusive_group()
@@ -91,9 +106,15 @@ group.add_argument("-n", "--name", help="Displays the name of the node.",
 group.add_argument("-i", "--ipaddr", 
     help="Displays the ipaddress of the node.",
     nargs="?",const=["1", "2", "3", "4"])
+#group.add_argument("-m", "--mount", help="Mounts the usb drives.",
+#    nargs="?",const=["1", "2", "3", "4"])
+#group.add_argument("-u", "--unmount", 
+#    help="Unmounts the usb drives.",
+#    nargs="?",const=["1", "2", "3", "4"])
 
 args = parser.parse_args()
 clear_terminal()
+# determine if args are all valid, else quit with message.
 
 #newline for nice output format
 print("\n")
