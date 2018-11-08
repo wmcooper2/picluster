@@ -9,9 +9,9 @@ from time import sleep
 #custom
 from pi_ipaddresses import *
 
-cluster     = [pi0, pi1, pi2, pi3]      # ip addresses
+cluster     = [pi1, pi2, pi3, pi4]      # ip addresses
 pi_outputs  = []                        # holds stdout from pis
-valid_args  = ["", "0", "1", "2", "3"]
+valid_args  = ["", "1", "2", "3", "4"]
 given_args  = []                        # holds args from command line
 
 def clear_terminal():
@@ -61,13 +61,23 @@ def _shutdown(pi):
                          stdout=subprocess.PIPE, shell=True)
 
 def _name(pi):
-    """Gets the name of the machine. Returns String."""
-    name = format_pi_name(cluster[int(pi)])
+    """Displays the name of the machine. Returns None."""
+    name = format_pi_name(cluster[int(pi)-1])
     cmd = "ssh "+name+" 'hostname'"
     c = subprocess.Popen(cmd, encoding='utf-8',
                          stdout=subprocess.PIPE, shell=True)
     for line in c.stdout:
         print(line.strip())
+
+def _ipaddr(pi):
+    """Displays the wlan0 ipaddress of the node. Returns None."""
+    name = format_pi_name(cluster[int(pi)-1])
+    cmd = "ssh "+name+" 'ip -4 address'"
+    c = subprocess.Popen(cmd, encoding="utf-8",
+                         stdout=subprocess.PIPE, shell=True)
+    [print(line.strip()) for line in c.stdout]
+    #grep the line with "inet "
+    #print the pi's name too
 
 # Main
 parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
@@ -77,7 +87,10 @@ group.add_argument("-r", "--reboot", help="Reboots the cluster.",
 group.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
     nargs="?",const=["0", "1", "2", "3"])
 group.add_argument("-n", "--name", help="Displays the name of the node.",
-    nargs="?",const=["0", "1", "2", "3"])
+    nargs="?",const=["1", "2", "3", "4"])
+group.add_argument("-i", "--ipaddr", 
+    help="Displays the ipaddress of the node.",
+    nargs="?",const=["1", "2", "3", "4"])
 
 args = parser.parse_args()
 clear_terminal()
@@ -91,7 +104,8 @@ elif args.shutdown:
     [_shutdown(arg) for arg in args.shutdown]
 elif args.name:
     [_name(arg) for arg in args.name]
-
+elif args.ipaddr:
+    [_ipaddr(arg) for arg in args.ipaddr]
 
 # End program
 parser.exit(status=0, message="Finished.\n")
