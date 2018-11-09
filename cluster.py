@@ -18,7 +18,7 @@ from pi_ipaddresses import *
 
 cluster     = [pi1, pi2, pi3, pi4]      # ip addresses
 pi_outputs  = []                        # holds stdout from pis
-valid_args  = ["", "1", "2", "3", "4"]
+valid_args  = ["1", "2", "3", "4"]
 given_args  = []                        # holds args from command line
 
 def clear_terminal():
@@ -53,7 +53,7 @@ def print_pi_outputs():
 
 def _reboot(pi):
     """Reboots all the nodes in cluster. Returns None."""
-    name = format_pi_name(cluster[int(pi)])
+    name = format_pi_name(cluster[int(pi)-1])
     cmd = "ssh "+name+" 'sudo reboot'"
     c = subprocess.Popen(cmd, encoding='utf-8', 
                          stdout=subprocess.PIPE, shell=True)
@@ -62,7 +62,7 @@ def _reboot(pi):
 
 def _shutdown(pi):
     """Shutsdown all the nodes in cluster. Returns None."""
-    name = format_pi_name(cluster[int(pi)])
+    name = format_pi_name(cluster[int(pi)-1])
     cmd = "ssh "+name+" 'sudo shutdown -h now'"
     c = subprocess.Popen(cmd, encoding='utf-8', 
                          stdout=subprocess.PIPE, shell=True)
@@ -71,46 +71,58 @@ def _name(pi):
     """Displays the name of the machine. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = "ssh "+name+" 'hostname'"
-    c = subprocess.Popen(cmd, encoding='utf-8',
-                         stdout=subprocess.PIPE, shell=True)
-    for line in c.stdout:
-        print(line.strip())
+#    c = subprocess.run(cmd, encoding='utf-8',
+#                         stdout=subprocess.PIPE, shell=True)
+#    print(c.stdout.strip())
+    print("cmd ::", cmd)
 
 def _ipaddr(pi):
     """Displays the wlan0 ipaddress of the node. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = "ssh "+name+" 'ip -4 address'"
-    c = subprocess.Popen(cmd, encoding="utf-8",
+    c = subprocess.run(cmd, encoding="utf-8",
                          stdout=subprocess.PIPE, shell=True)
-    [print(line.strip()) for line in c.stdout]
+#    [print(line.strip()) for line in c.stdout]
+    print(c.stdout)
     #grep the line with "inet "
     #print the pi's name too
 
 def mountusb():
     """Mount the usb drives to the nodes. Returns None."""
-    pass
+    name = format_pi_name(cluster[int(pi)-1])
+    cmd = "ssh "+name+" 'sudo mount /dev/sda1 /mnt/usb'"
+    c = subprocess.Popen(cmd, encoding='utf-8',
+                         stdout=subprocess.PIPE, shell=True)
+    [print(line.strip()) for line in c.stdout]
 
 def unmountusb():
     """Unmounts the usb drives from the nodes. Returns None."""
-    pass
+    name = format_pi_name(cluster[int(pi)-1])
+    cmd = "ssh "+name+" 'sudo umount /dev/sda1 /mnt/usb'"
+    c = subprocess.Popen(cmd, encoding='utf-8',
+                         stdout=subprocess.PIPE, shell=True)
+    [print(line.strip()) for line in c.stdout]
 
 # Main
 parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
 group = parser.add_mutually_exclusive_group()
 group.add_argument("-r", "--reboot", help="Reboots the cluster.", 
-    nargs="?",const=["0", "1", "2", "3"])
+#    nargs="?", const=["0", "1", "2", "3"])
+    nargs="?", const=valid_args)
 group.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
-    nargs="?",const=["0", "1", "2", "3"])
+    nargs="?", const=valid_args)
 group.add_argument("-n", "--name", help="Displays the name of the node.",
-    nargs="?",const=["1", "2", "3", "4"])
+    nargs="?", const=valid_args)
 group.add_argument("-i", "--ipaddr", 
     help="Displays the ipaddress of the node.",
-    nargs="?",const=["1", "2", "3", "4"])
-#group.add_argument("-m", "--mount", help="Mounts the usb drives.",
-#    nargs="?",const=["1", "2", "3", "4"])
-#group.add_argument("-u", "--unmount", 
-#    help="Unmounts the usb drives.",
-#    nargs="?",const=["1", "2", "3", "4"])
+#    nargs="?", const=["1", "2", "3", "4"])
+    nargs="?", const=valid_args)
+group.add_argument("-m", "--mount", help="Mounts the usb drives.",
+#    nargs="?", const=["1", "2", "3", "4"])
+    nargs="?", const=valid_args)
+group.add_argument("-u", "--unmount", help="Unmounts the usb drives.",
+#    nargs="?", const=["1", "2", "3", "4"])
+    nargs="?", const=valid_args)
 
 args = parser.parse_args()
 clear_terminal()
@@ -119,14 +131,19 @@ clear_terminal()
 #newline for nice output format
 print("\n")
 
-if args.reboot:
-    [_reboot(arg) for arg in args.reboot]
-elif args.shutdown:
-    [_shutdown(arg) for arg in args.shutdown]
-elif args.name:
-    [_name(arg) for arg in args.name]
-elif args.ipaddr:
-    [_ipaddr(arg) for arg in args.ipaddr]
+
+if all([arg in valid_args for arg in args.name]) and len(args.name) <= 4: 
+    if args.reboot:
+        [_reboot(arg) for arg in args.reboot]
+    elif args.shutdown:
+        [_shutdown(arg) for arg in args.shutdown]
+    elif args.name:
+        [_name(arg) for arg in args.name]
+#        print(all([arg in valid_args for arg in args.name]))
+    elif args.ipaddr:
+        [_ipaddr(arg) for arg in args.ipaddr]
+else:
+    print("Please choose any combination of the four nodes (1 2 3 or 4).\nYou can choose a maximum of four nodes at a time.\nLeave blank to choose all.\n")
 
 # End program
 parser.exit(status=0, message="Finished.\n")
