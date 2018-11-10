@@ -18,6 +18,19 @@ pi_outputs  = []                        # holds stdout from pis
 valid_args  = ["1", "2", "3", "4"]
 given_args  = []                        # holds args from command line
 
+def not_none(flag):
+    """Checks that args for a flag are not None. Returns Boolean."""
+    if flag[1] != None: return True
+    else: return False
+
+def valid(a):
+    """Validates the input arugments. Returns Boolean."""
+    for line in a:
+        if all([arg in valid_args for arg in line[1]]) and len(line[1])<=4: 
+            return True
+        elif a
+    return False
+
 def clear_terminal():
     """Clears the terminal window. Returns None."""
     subprocess.run(["clear"])
@@ -26,12 +39,6 @@ def show_outputs():
     """Shows the outputs of the pis. Returns None."""
     for output in pi_outputs:
         print(str(pi_outputs.index(output)), "::", output)
-
-def valid(value):
-    """Determines validity of arguments. Returns Boolean."""
-    #if all values are in valid args and the length of the argument list is
-    #+ equal to or less than valid_args
-    return value in valid_args
 
 def format_pi_name(string):
     """Formats the pi name. Returns String."""
@@ -100,6 +107,8 @@ def _umount(pi):
 # Main
 parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
 group = parser.add_mutually_exclusive_group()
+group.add_argument("-c", "--custom", help="Send a custom command.",
+    nargs="?", type=str)
 group.add_argument("-r", "--reboot", help="Reboots the cluster.", 
     nargs="?", const=valid_args)
 group.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
@@ -116,22 +125,27 @@ group.add_argument("-u", "--umount", help="Unmounts the usb drives.",
 args = parser.parse_args()
 clear_terminal()
 print("\n")     # for nice terminal output
+a = filter(not_none, args._get_kwargs())    #filter args != None
 
-#if all([arg in valid_args for arg in args.name]) and len(args.name) <= 4: 
-if args.reboot:
-    [_reboot(arg) for arg in args.reboot]
-elif args.shutdown:
-    [_shutdown(arg) for arg in args.shutdown]
-elif args.name:
-    [_name(arg) for arg in args.name]
-elif args.ipaddr:
-    [_ipaddr(arg) for arg in args.ipaddr]
-elif args.mount:
-    [_mount(arg) for arg in args.mount]
-elif args.umount:
-    [_umount(arg) for arg in args.umount]
-#else:
-#    print("Please choose any combination of the four nodes (1 2 3 or 4).\nYou can choose a maximum of four nodes at a time.\nLeave blank to choose all.\n")
+# doesnt work for custom flag
+if valid(a):
+    if args.custom:
+        print("custom ::", args.custom)
+    elif args.reboot:
+        [_reboot(arg) for arg in args.reboot]
+    elif args.shutdown:
+        [_shutdown(arg) for arg in args.shutdown]
+    elif args.name:
+    #    [_name(arg) for arg in args.name]
+        print(args.name)
+    elif args.ipaddr:
+        [_ipaddr(arg) for arg in args.ipaddr]
+    elif args.mount:
+        [_mount(arg) for arg in args.mount]
+    elif args.umount:
+        [_umount(arg) for arg in args.umount]
+else:
+    print("Please choose any combination of the four nodes (1 2 3 or 4).\nYou can choose a maximum of four nodes at a time.\nLeave blank to choose all.\n")
 
 # End program
 parser.exit(status=0, message="Finished.\n")
