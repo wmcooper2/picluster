@@ -4,7 +4,6 @@
 #stand lib
 import argparse as ap
 import subprocess
-from time import sleep
 
 #custom
 from pi_ipaddresses import *
