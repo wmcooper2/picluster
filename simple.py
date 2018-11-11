@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Commands to control the pi-cluster."""
-
-#To do:
-    # set up passing a search string to the nodes
-    # set up a script in each node that saves results of a search on the local node and then another command to check that the processes are finished, then another to retrieve the results?
+"""Simple, routine commands to control the pi-cluster."""
 
 #stand lib
 import argparse as ap
@@ -28,7 +24,6 @@ def valid(a):
     for line in a:
         if all([arg in valid_args for arg in line[1]]) and len(line[1])<=4: 
             return True
-        elif a
     return False
 
 def clear_terminal():
@@ -62,7 +57,7 @@ def print_pi_outputs():
 def run_cmd(cmd):
     """Runs cmd in a subprocess. Returns stdout String."""
     return subprocess.run(cmd, encoding="utf-8", shell=True,
-                          stdout=subprocess.PIPE).stdout
+        stdout=subprocess.PIPE).stdout
 
 def _reboot(pi):
     """Reboots all the nodes in cluster. Returns None."""
@@ -104,48 +99,48 @@ def _umount(pi):
     cmd = format_cmd(name, "sudo umount /dev/sda1 /mnt/usb")
     run_cmd(cmd)
 
-# Main
-parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
-group = parser.add_mutually_exclusive_group()
-group.add_argument("-c", "--custom", help="Send a custom command.",
-    nargs="?", type=str)
-group.add_argument("-r", "--reboot", help="Reboots the cluster.", 
-    nargs="?", const=valid_args)
-group.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
-    nargs="?", const=valid_args)
-group.add_argument("-n", "--name", help="Displays the name of the node.",
-    nargs="?", const=valid_args)
-group.add_argument("-i", "--ipaddr", help="Displays ipaddress of node.",
-    nargs="?", const=valid_args)
-group.add_argument("-m", "--mount", help="Mounts the usb drives.",
-    nargs="?", const=valid_args)
-group.add_argument("-u", "--umount", help="Unmounts the usb drives.",
-    nargs="?", const=valid_args)
-
-args = parser.parse_args()
-clear_terminal()
-print("\n")     # for nice terminal output
-a = filter(not_none, args._get_kwargs())    #filter args != None
-
-# doesnt work for custom flag
-if valid(a):
-    if args.custom:
-        print("custom ::", args.custom)
-    elif args.reboot:
-        [_reboot(arg) for arg in args.reboot]
+def run_simple(a):
+    """Runs a simple command. Returns None."""
+    if args.reboot:
+        [_reboot(arg) for arg in set(args.reboot)]
     elif args.shutdown:
-        [_shutdown(arg) for arg in args.shutdown]
+        [_shutdown(arg) for arg in set(args.shutdown)]
     elif args.name:
-    #    [_name(arg) for arg in args.name]
-        print(args.name)
+        [_name(arg) for arg in set(args.name)]
     elif args.ipaddr:
-        [_ipaddr(arg) for arg in args.ipaddr]
+        [_ipaddr(arg) for arg in set(args.ipaddr)]
     elif args.mount:
-        [_mount(arg) for arg in args.mount]
+        [_mount(arg) for arg in set(args.mount)]
     elif args.umount:
-        [_umount(arg) for arg in args.umount]
-else:
-    print("Please choose any combination of the four nodes (1 2 3 or 4).\nYou can choose a maximum of four nodes at a time.\nLeave blank to choose all.\n")
+        [_umount(arg) for arg in set(args.umount)]
 
-# End program
-parser.exit(status=0, message="Finished.\n")
+if __name__ == "__main__":
+    parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
+
+    # simple, common commands
+    simple = parser.add_mutually_exclusive_group()
+    simple.add_argument("-r", "--reboot", help="Reboots the cluster.", 
+        nargs="?", const=valid_args)
+    simple.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
+        nargs="?", const=valid_args)
+    simple.add_argument("-n", "--name", help="Displays name of the node.",
+        nargs="?", const=valid_args)
+    simple.add_argument("-i", "--ipaddr", help="Displays node's ipaddress.",
+        nargs="?", const=valid_args)
+    simple.add_argument("-m", "--mount", help="Mounts the usb drives.",
+        nargs="?", const=valid_args)
+    simple.add_argument("-u", "--umount", help="Unmounts the usb drives.",
+        nargs="?", const=valid_args)
+
+    args = parser.parse_args()
+    clear_terminal()
+    print("\n")     # for nice terminal output
+    a = filter(not_none, args._get_kwargs())    #filter args != None
+
+    if valid(a):
+        run_simple(a)
+    else:
+        print("Please choose any combination of the four nodes (1 2 3 or 4).\nYou can choose a maximum of four nodes at a time.\nLeave blank to choose all.\n")
+
+    # End program
+    parser.exit(status=0, message="Finished.\n")
