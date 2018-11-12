@@ -80,11 +80,9 @@ def _name(pi):
 def _ipaddr(pi):
     """Displays the wlan0 ipaddress of the node. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
-    cmd = format_cmd(name, "ip -4 address")
+    cmd = format_cmd(name, "hostname -I")
     result = run_cmd(cmd)
-    elements = result.strip().split()
-    [print(pi, "::", el) for el in elements 
-        if el.startswith("192") and el.endswith("24")]
+    print("pi{}".format(pi), result.strip())
 
 def _mount(pi):
     """Mount the usb drives to the nodes. Returns None."""
