@@ -19,3 +19,6 @@ Control a small cluster of raspberry pi nodes remotely.
 * give a timeout to the commands
 * set up commands to run with threads?
   * now they run sequentially
+* Tests need more thought.
+
+

@@ -3,6 +3,7 @@
 
 #stand lib
 import argparse as ap
+from pathlib import Path
 import subprocess
 
 #custom
@@ -89,12 +90,26 @@ def _mount(pi):
     name = format_pi_name(cluster[int(pi)-1])
     cmd = format_cmd(name, "sudo mount /dev/sda1 /mnt/usb")
     run_cmd(cmd)
+    print("{}: mounted {} at {}".format(name, "/dev/sda1", "/mnt/usb"))
 
 def _umount(pi):
     """Unmounts the usb drives from the nodes. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = format_cmd(name, "sudo umount /dev/sda1 /mnt/usb")
     run_cmd(cmd)
+    print("{}: unmounted {} from {}".format(name, "/dev/sda1", "/mnt/usb"))
+
+def _list(pi, args):
+    """List the dir names in /mnt/usb"""
+    name = format_pi_name(cluster[int(pi)-1])
+    cmd = None
+    if args.verbose:
+        cmd = format_cmd(name, "ls -al /mnt/usb/")
+    else:
+        cmd = format_cmd(name, "ls /mnt/usb/")
+    print(name)
+    print(run_cmd(cmd).strip())
+    print("\n")
 
 def run_simple(a):
     """Runs a simple command. Returns None."""
@@ -110,9 +125,13 @@ def run_simple(a):
         [_mount(arg) for arg in set(args.mount)]
     elif args.umount:
         [_umount(arg) for arg in set(args.umount)]
+    elif args.list:
+        [_list(arg, args) for arg in set(args.list)]
 
 if __name__ == "__main__":
     parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
+    parser.add_argument("-v", "--verbose", help="Be verbose.", 
+        action="store_true")
 
     # simple, common commands
     simple = parser.add_mutually_exclusive_group()
@@ -128,6 +147,9 @@ if __name__ == "__main__":
         nargs="?", const=valid_args)
     simple.add_argument("-u", "--umount", help="Unmounts the usb drives.",
         nargs="?", const=valid_args)
+    simple.add_argument("-l", "--list", help="List dirs in /mnt/usb",
+        nargs="?", const=valid_args)
+
 
     args = parser.parse_args()
     clear_terminal()

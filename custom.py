@@ -52,34 +52,26 @@ def print_pi_outputs():
 def run_cmd(cmd):
     """Runs cmd in a subprocess. Returns stdout String."""
     return subprocess.run(cmd, encoding="utf-8", shell=True,
-        stdout=subprocess.PIPE).stdout
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
 
-def custom_cmd(pi, string):
+def custom_cmd(pi, args):
     """Sends custom command to a node. Returns String."""
     node = format_node(pi)
     ssh = format_ssh(node)
-    cmd = format_cmd(ssh, string)
+    cmd = format_cmd(ssh, args.command)
     result = run_cmd(cmd)
-    print(result.strip())
-#    if args.verbose:
-#        print(result)
+    if args.verbose:
+        print(result.strip())
     return "pi@{0}".format(pi)+"\n"+result.strip()
-
-#class verbosity(argparse.Action):
-#    def __init__(self):
-#        pass
-#    def 
 
 if __name__ == "__main__":
     parser = ap.ArgumentParser(description="Custom commands for pi-cluster.")
     parser.add_argument("command", help="A string to run at the CLI.")
-#    parser.add_argument("-v", "--verbose", help="Be verbose.")
+    parser.add_argument("-v", "--verbose", help="Be verbose.", action="store_true")
     args = parser.parse_args()
     clear_terminal()
     print("\n")     # for nice terminal output
-
-    if args.command:
-        [print(custom_cmd(pi, args.command)) for pi in cluster]
+    [custom_cmd(pi, args) for pi in cluster]
 
     # End program
     parser.exit(status=0, message="Finished.\n")
