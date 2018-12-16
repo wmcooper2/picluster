@@ -65,12 +65,13 @@ def custom_cmd(pi, args):
     return "pi@{0}".format(pi)+"\n"+result.strip()
 
 if __name__ == "__main__":
-    parser = ap.ArgumentParser(description="Custom commands for pi-cluster.")
+    parser = ap.ArgumentParser(description="Custom cmds for pi-cluster.")
     parser.add_argument("command", help="A string to run at the CLI.")
-    parser.add_argument("-v", "--verbose", help="Be verbose.", action="store_true")
+    parser.add_argument("-v", "--verbose", help="Be verbose.", 
+        action="store_true")
     args = parser.parse_args()
     clear_terminal()
-    print("\n")     # for nice terminal output
+    print("\n")
     [custom_cmd(pi, args) for pi in cluster]
 
     # End program

@@ -100,7 +100,7 @@ def _umount(pi):
     print("{}: unmounted {} from {}".format(name, "/dev/sda1", "/mnt/usb"))
 
 def _list(pi, args):
-    """List the dir names in /mnt/usb"""
+    """List the dir names of a node's /mnt/usb."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = None
     if args.verbose:
@@ -149,7 +149,6 @@ if __name__ == "__main__":
         nargs="?", const=valid_args)
     simple.add_argument("-l", "--list", help="List dirs in /mnt/usb",
         nargs="?", const=valid_args)
-
 
     args = parser.parse_args()
     clear_terminal()
