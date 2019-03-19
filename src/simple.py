@@ -1,105 +1,144 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 """Simple, routine commands to control the pi-cluster."""
 
-#stand lib
+# stand lib
 import argparse as ap
 from pathlib import Path
+from pprint import pprint
 import subprocess
+from typing import Any
 
-#custom
+# custom
 from pi_ipaddresses import *
 
-cluster     = [pi1, pi2, pi3, pi4]      # ip addresses
-pi_outputs  = []                        # holds stdout from pis
-valid_args  = ["1", "2", "3", "4"]
-given_args  = []                        # holds args from command line
+cluster: list = [pi1, pi2, pi3, pi4]      # ip addresses
+pi_outputs: list = []                        # holds stdout from pis
+valid_args: list = ["1", "2", "3", "4"]
+given_args: list = []                        # holds args from command line
+message: list = ["Please choose any combo of the nodes (1 2 3 or 4).",
+                 "\n", "You can choose a maximum of four nodes at a time.",
+                 "\n", "Leave blank to choose all.",
+                 "\n"]
 
-def not_none(flag):
+
+def not_none(args: list) -> bool:
     """Checks that args for a flag are not None. Returns Boolean."""
-    if flag[1] != None: return True
-    else: return False
+    if args[1] is not None:
+        return True
+    else:
+        return False
 
-def valid(a):
+
+def valid_input_args(args: list) -> bool:
     """Validates the input arugments. Returns Boolean."""
-    for line in a:
-        if all([arg in valid_args for arg in line[1]]) and len(line[1])<=4: 
+    for argline in args:
+        if (all([arg in valid_args for arg in argline[1]])
+                and len(argline[1]) <= 4):
             return True
     return False
 
-def clear_terminal():
+
+def clear_terminal() -> None:
     """Clears the terminal window. Returns None."""
     subprocess.run(["clear"])
+    return None
 
-def show_outputs():
+
+def show_outputs() -> None:
     """Shows the outputs of the pis. Returns None."""
     for output in pi_outputs:
         print(str(pi_outputs.index(output)), "::", output)
+    return None
 
-def format_pi_name(string):
+
+def format_pi_name(name: str) -> str:
     """Formats the pi name. Returns String."""
-    piname = "pi@"+string
+    piname = "pi@"+name
     return piname
 
-def format_cmd(str1, str2):
-    """Formats the command. Returns String."""
-    return "ssh "+str1+" '"+str2+"'"
 
-def print_kwargs():
+def format_cmd(a: str, b: str) -> str:
+    """Formats the command. Returns String."""
+    return "ssh "+a+" '"+b+"'"
+
+
+def print_kwargs() -> None:
     """Displays kwargs given at command line. Returns None."""
     for _, value in args._get_kwargs():
         given_args.append(value)
         print(_, "::", value)
+    return None
 
-def print_pi_outputs():
+
+def print_pi_outputs() -> None:
     """Displays contents of pi_outputs. Returns None."""
-    [print(out.stdout) for out in pi_outputs]
+#    [print(out.stdout) for out in pi_outputs]
+    for out in pi_outputs:
+        print(out.stdout)
+    return None
 
-def run_cmd(cmd):
+
+def run_cmd(cmd: str) -> str:
     """Runs cmd in a subprocess. Returns stdout String."""
     return subprocess.run(cmd, encoding="utf-8", shell=True,
-        stdout=subprocess.PIPE).stdout
+                          stdout=subprocess.PIPE).stdout
 
-def _reboot(pi):
+
+def _reboot(pi: str) -> None:
     """Reboots all the nodes in cluster. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = format_cmd(name, "sudo reboot")
     run_cmd(cmd)
+    return None
 
-def _shutdown(pi):
+
+def _shutdown(pi: str) -> None:
     """Shutsdown all the nodes in cluster. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = format_cmd(name, "sudo shutdown -h now")
     run_cmd(cmd)
+    return None
 
-def _name(pi):
+
+def _name(pi: str) -> None:
     """Displays the name of the machine. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
+    print("name", name)
     cmd = format_cmd(name, "hostname")
     result = run_cmd(cmd)
+#    print("result")
     print(result.strip())
+    return None
 
-def _ipaddr(pi):
+
+def _ipaddr(pi: str) -> None:
     """Displays the wlan0 ipaddress of the node. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = format_cmd(name, "hostname -I")
     result = run_cmd(cmd)
     print("pi{}".format(pi), result.strip())
+    return None
 
-def _mount(pi):
+
+def _mount(pi: str) -> None:
     """Mount the usb drives to the nodes. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = format_cmd(name, "sudo mount /dev/sda1 /mnt/usb")
     run_cmd(cmd)
     print("{}: mounted {} at {}".format(name, "/dev/sda1", "/mnt/usb"))
+    return None
 
-def _umount(pi):
+
+def _umount(pi: str) -> None:
     """Unmounts the usb drives from the nodes. Returns None."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = format_cmd(name, "sudo umount /dev/sda1 /mnt/usb")
     run_cmd(cmd)
     print("{}: unmounted {} from {}".format(name, "/dev/sda1", "/mnt/usb"))
+    return None
 
-def _list(pi, args):
+
+def _list(pi: str, args: Any) -> None:
     """List the dir names of a node's /mnt/usb."""
     name = format_pi_name(cluster[int(pi)-1])
     cmd = None
@@ -110,55 +149,67 @@ def _list(pi, args):
     print(name)
     print(run_cmd(cmd).strip())
     print("\n")
+    return None
 
-def run_simple(a):
+
+# because map() would not work in run_simple(), IDK.
+def apply_to_each(f: Any, args: list) -> None:
+    """Runs each function on arg in args. Returns None."""
+    for arg in args:
+        f(arg)
+    return None
+
+
+def run_simple(args: Any) -> None:
     """Runs a simple command. Returns None."""
     if args.reboot:
-        [_reboot(arg) for arg in set(args.reboot)]
+        apply_to_each(_reboot, args.reboot)
     elif args.shutdown:
-        [_shutdown(arg) for arg in set(args.shutdown)]
+        apply_to_each(_shutdown, args.shutdown)
     elif args.name:
-        [_name(arg) for arg in set(args.name)]
+        apply_to_each(_name, args.name)
     elif args.ipaddr:
-        [_ipaddr(arg) for arg in set(args.ipaddr)]
+        apply_to_each(_ipaddr, args.ipaddr)
     elif args.mount:
-        [_mount(arg) for arg in set(args.mount)]
+        apply_to_each(_mount, args.mount)
     elif args.umount:
-        [_umount(arg) for arg in set(args.umount)]
+        apply_to_each(_umount, args.umount)
     elif args.list:
-        [_list(arg, args) for arg in set(args.list)]
+        apply_to_each(_list, args.list)
+    return None
+
 
 if __name__ == "__main__":
     parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
-    parser.add_argument("-v", "--verbose", help="Be verbose.", 
-        action="store_true")
+    parser.add_argument("-v", "--verbose", help="Be verbose.",
+                        action="store_true")
 
     # simple, common commands
     simple = parser.add_mutually_exclusive_group()
-    simple.add_argument("-r", "--reboot", help="Reboots the cluster.", 
-        nargs="?", const=valid_args)
+    simple.add_argument("-r", "--reboot",   help="Reboots the cluster.",
+                        nargs="?", const=valid_args)
     simple.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
-        nargs="?", const=valid_args)
-    simple.add_argument("-n", "--name", help="Displays name of the node.",
-        nargs="?", const=valid_args)
-    simple.add_argument("-i", "--ipaddr", help="Displays node's ipaddress.",
-        nargs="?", const=valid_args)
-    simple.add_argument("-m", "--mount", help="Mounts the usb drives.",
-        nargs="?", const=valid_args)
-    simple.add_argument("-u", "--umount", help="Unmounts the usb drives.",
-        nargs="?", const=valid_args)
-    simple.add_argument("-l", "--list", help="List dirs in /mnt/usb",
-        nargs="?", const=valid_args)
+                        nargs="?", const=valid_args)
+    simple.add_argument("-n", "--name",     help="Displays name of the node.",
+                        nargs="?", const=valid_args)
+    simple.add_argument("-i", "--ipaddr",   help="Displays node's ipaddress.",
+                        nargs="?", const=valid_args)
+    simple.add_argument("-m", "--mount",    help="Mounts the usb drives.",
+                        nargs="?", const=valid_args)
+    simple.add_argument("-u", "--umount",   help="Unmounts the usb drives.",
+                        nargs="?", const=valid_args)
+    simple.add_argument("-l", "--list",     help="List dirs in /mnt/usb",
+                        nargs="?", const=valid_args)
 
     args = parser.parse_args()
     clear_terminal()
-    print("\n")     # for nice terminal output
-    a = filter(not_none, args._get_kwargs())    #filter args != None
+    print("\n")
+    a = list(filter(not_none, args._get_kwargs()))
 
-    if valid(a):
-        run_simple(a)
+    if valid_input_args(a):
+        run_simple(args)
     else:
-        print("Please choose any combination of the four nodes (1 2 3 or 4).\nYou can choose a maximum of four nodes at a time.\nLeave blank to choose all.\n")
+        pprint(message)
 
     # End program
     parser.exit(status=0, message="Finished.\n")

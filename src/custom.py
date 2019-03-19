@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Send custom commands to control the pi-cluster."""
 
+#NOT FINISHED
+
 #stand lib
 import argparse as ap
 import subprocess
@@ -66,8 +68,8 @@ def custom_cmd(pi, args):
 
 if __name__ == "__main__":
     parser = ap.ArgumentParser(description="Custom cmds for pi-cluster.")
-    parser.add_argument("command", help="A string to run at the CLI.")
-    parser.add_argument("-v", "--verbose", help="Be verbose.", 
+    parser.add_argument("command",          help="A string to run at the CLI.")
+    parser.add_argument("-v", "--verbose",  help="Be verbose.", 
         action="store_true")
     args = parser.parse_args()
     clear_terminal()
