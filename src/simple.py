@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.7
 """Simple, routine commands to control the pi-cluster."""
 
 # stand lib
@@ -6,12 +5,18 @@ import argparse as ap
 from pathlib import Path
 from pprint import pprint
 import subprocess
-from typing import Any
+from typing import Any, List
 
 # custom
 from pi_ipaddresses import *
+from util import addresses
 
-cluster: list = [pi1, pi2, pi3, pi4]      # ip addresses
+
+#TODO, testing one pi
+# cluster: list = [pi1, pi2, pi3, pi4]      # ip addresses
+cluster: List = addresses()
+
+
 pi_outputs: list = []                        # holds stdout from pis
 valid_args: list = ["1", "2", "3", "4"]
 given_args: list = []                        # holds args from command line
@@ -31,9 +36,10 @@ def not_none(args: list) -> bool:
 
 def valid_input_args(args: list) -> bool:
     """Validates the input arugments. Returns Boolean."""
-    for argline in args:
-        if (all([arg in valid_args for arg in argline[1]])
-                and len(argline[1]) <= 4):
+    print(args)
+    breakpoint()
+    for arg in args:
+        if (all([arg in valid_args for arg in arg[1]]) and len(arg[1]) <= 4):
             return True
     return False
 
@@ -80,8 +86,7 @@ def print_pi_outputs() -> None:
 
 def run_cmd(cmd: str) -> str:
     """Runs cmd in a subprocess. Returns stdout String."""
-    return subprocess.run(cmd, encoding="utf-8", shell=True,
-                          stdout=subprocess.PIPE).stdout
+    return subprocess.run(cmd, encoding="utf-8", shell=True, stdout=subprocess.PIPE).stdout
 
 
 def _reboot(pi: str) -> None:
@@ -181,30 +186,22 @@ def run_simple(args: Any) -> None:
 
 if __name__ == "__main__":
     parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
-    parser.add_argument("-v", "--verbose", help="Be verbose.",
-                        action="store_true")
+    parser.add_argument("-v", "--verbose", help="Be verbose.", action="store_true")
 
     # simple, common commands
     simple = parser.add_mutually_exclusive_group()
-    simple.add_argument("-r", "--reboot",   help="Reboots the cluster.",
-                        nargs="?", const=valid_args)
-    simple.add_argument("-s", "--shutdown", help="Shuts down the cluster.",
-                        nargs="?", const=valid_args)
-    simple.add_argument("-n", "--name",     help="Displays name of the node.",
-                        nargs="?", const=valid_args)
-    simple.add_argument("-i", "--ipaddr",   help="Displays node's ipaddress.",
-                        nargs="?", const=valid_args)
-    simple.add_argument("-m", "--mount",    help="Mounts the usb drives.",
-                        nargs="?", const=valid_args)
-    simple.add_argument("-u", "--umount",   help="Unmounts the usb drives.",
-                        nargs="?", const=valid_args)
-    simple.add_argument("-l", "--list",     help="List dirs in /mnt/usb",
-                        nargs="?", const=valid_args)
-
+    simple.add_argument("-r", "--reboot",   help="Reboots the cluster.",        nargs="?", const=valid_args)
+    simple.add_argument("-s", "--shutdown", help="Shuts down the cluster.",     nargs="?", const=valid_args)
+    simple.add_argument("-n", "--name",     help="Displays name of the node.",  nargs="?", const=valid_args)
+    simple.add_argument("-i", "--ipaddr",   help="Displays node's ipaddress.",  nargs="?", const=valid_args)
+    simple.add_argument("-m", "--mount",    help="Mounts the usb drives.",      nargs="?", const=valid_args)
+    simple.add_argument("-u", "--umount",   help="Unmounts the usb drives.",    nargs="?", const=valid_args)
+    simple.add_argument("-l", "--list",     help="List dirs in /mnt/usb",       nargs="?", const=valid_args)
     args = parser.parse_args()
     clear_terminal()
-    print("\n")
+    print()
     a = list(filter(not_none, args._get_kwargs()))
+
 
     if valid_input_args(a):
         run_simple(args)
