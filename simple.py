@@ -12,11 +12,6 @@ from pi_ipaddresses import *
 from util import addresses
 
 
-#TODO, testing one pi
-# cluster: list = [pi1, pi2, pi3, pi4]      # ip addresses
-cluster: List = addresses()
-
-
 pi_outputs: list = []                        # holds stdout from pis
 valid_args: list = ["1", "2", "3", "4"]
 given_args: list = []                        # holds args from command line
@@ -32,16 +27,6 @@ def not_none(args: list) -> bool:
         return True
     else:
         return False
-
-
-def valid_input_args(args: list) -> bool:
-    """Validates the input arugments. Returns Boolean."""
-    print(args)
-    breakpoint()
-    for arg in args:
-        if (all([arg in valid_args for arg in arg[1]]) and len(arg[1]) <= 4):
-            return True
-    return False
 
 
 def clear_terminal() -> None:
@@ -78,7 +63,6 @@ def print_kwargs() -> None:
 
 def print_pi_outputs() -> None:
     """Displays contents of pi_outputs. Returns None."""
-#    [print(out.stdout) for out in pi_outputs]
     for out in pi_outputs:
         print(out.stdout)
     return None
@@ -91,7 +75,7 @@ def run_cmd(cmd: str) -> str:
 
 def _reboot(pi: str) -> None:
     """Reboots all the nodes in cluster. Returns None."""
-    name = format_pi_name(cluster[int(pi)-1])
+    name = format_pi_name(pi)
     cmd = format_cmd(name, "sudo reboot")
     run_cmd(cmd)
     return None
@@ -99,7 +83,7 @@ def _reboot(pi: str) -> None:
 
 def _shutdown(pi: str) -> None:
     """Shutsdown all the nodes in cluster. Returns None."""
-    name = format_pi_name(cluster[int(pi)-1])
+    name = format_pi_name(pi)
     cmd = format_cmd(name, "sudo shutdown -h now")
     run_cmd(cmd)
     return None
@@ -107,18 +91,16 @@ def _shutdown(pi: str) -> None:
 
 def _name(pi: str) -> None:
     """Displays the name of the machine. Returns None."""
-    name = format_pi_name(cluster[int(pi)-1])
-    print("name", name)
+    name = format_pi_name(pi)
     cmd = format_cmd(name, "hostname")
     result = run_cmd(cmd)
-#    print("result")
     print(result.strip())
     return None
 
 
 def _ipaddr(pi: str) -> None:
     """Displays the wlan0 ipaddress of the node. Returns None."""
-    name = format_pi_name(cluster[int(pi)-1])
+    name = format_pi_name(pi)
     cmd = format_cmd(name, "hostname -I")
     result = run_cmd(cmd)
     print("pi{}".format(pi), result.strip())
@@ -127,7 +109,7 @@ def _ipaddr(pi: str) -> None:
 
 def _mount(pi: str) -> None:
     """Mount the usb drives to the nodes. Returns None."""
-    name = format_pi_name(cluster[int(pi)-1])
+    name = format_pi_name(pi)
     cmd = format_cmd(name, "sudo mount /dev/sda1 /mnt/usb")
     run_cmd(cmd)
     print("{}: mounted {} at {}".format(name, "/dev/sda1", "/mnt/usb"))
@@ -136,7 +118,7 @@ def _mount(pi: str) -> None:
 
 def _umount(pi: str) -> None:
     """Unmounts the usb drives from the nodes. Returns None."""
-    name = format_pi_name(cluster[int(pi)-1])
+    name = format_pi_name(pi)
     cmd = format_cmd(name, "sudo umount /dev/sda1 /mnt/usb")
     run_cmd(cmd)
     print("{}: unmounted {} from {}".format(name, "/dev/sda1", "/mnt/usb"))
@@ -145,7 +127,7 @@ def _umount(pi: str) -> None:
 
 def _list(pi: str, args: Any) -> None:
     """List the dir names of a node's /mnt/usb."""
-    name = format_pi_name(cluster[int(pi)-1])
+    name = format_pi_name(pi)
     cmd = None
     if args.verbose:
         cmd = format_cmd(name, "ls -al /mnt/usb/")
@@ -157,7 +139,6 @@ def _list(pi: str, args: Any) -> None:
     return None
 
 
-# because map() would not work in run_simple(), IDK.
 def apply_to_each(f: Any, args: list) -> None:
     """Runs each function on arg in args. Returns None."""
     for arg in args:
@@ -168,29 +149,32 @@ def apply_to_each(f: Any, args: list) -> None:
 def run_simple(args: Any) -> None:
     """Runs a simple command. Returns None."""
     if args.reboot:
-        apply_to_each(_reboot, args.reboot)
+        apply_to_each(_reboot, cluster)
     elif args.shutdown:
-        apply_to_each(_shutdown, args.shutdown)
+        apply_to_each(_shutdown, cluster)
     elif args.name:
-        apply_to_each(_name, args.name)
+        apply_to_each(_name, cluster)
     elif args.ipaddr:
-        apply_to_each(_ipaddr, args.ipaddr)
+        apply_to_each(_ipaddr, cluster)
     elif args.mount:
-        apply_to_each(_mount, args.mount)
+        apply_to_each(_mount, cluster)
     elif args.umount:
-        apply_to_each(_umount, args.umount)
+        apply_to_each(_umount, cluster)
     elif args.list:
-        apply_to_each(_list, args.list)
+        apply_to_each(_list, cluster)
     return None
 
 
 if __name__ == "__main__":
+
+    cluster: List = addresses()
+
     parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
     parser.add_argument("-v", "--verbose", help="Be verbose.", action="store_true")
 
     # simple, common commands
     simple = parser.add_mutually_exclusive_group()
-    simple.add_argument("-r", "--reboot",   help="Reboots the cluster.",        nargs="?", const=valid_args)
+    simple.add_argument("-r", "--reboot",   help="Reboots the cluster.",        nargs="?")
     simple.add_argument("-s", "--shutdown", help="Shuts down the cluster.",     nargs="?", const=valid_args)
     simple.add_argument("-n", "--name",     help="Displays name of the node.",  nargs="?", const=valid_args)
     simple.add_argument("-i", "--ipaddr",   help="Displays node's ipaddress.",  nargs="?", const=valid_args)
@@ -202,11 +186,7 @@ if __name__ == "__main__":
     print()
     a = list(filter(not_none, args._get_kwargs()))
 
-
-    if valid_input_args(a):
-        run_simple(args)
-    else:
-        pprint(message)
+    run_simple(args)
 
     # End program
     parser.exit(status=0, message="Finished.\n")

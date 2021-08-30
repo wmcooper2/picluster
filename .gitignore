@@ -1,2 +1,4 @@
 .DS_Store
 personal.txt
+venv
+__pycache__

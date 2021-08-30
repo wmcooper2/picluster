@@ -33,8 +33,8 @@ def is_mac() -> bool:
 
 def addresses() -> List[Text]:
     with open("pi_addresses.txt", "r") as f:
-        addresses = f.read()
-    return addresses
+        addresses = f.readlines()
+    return [address.strip() for address in addresses]
 
 
 def ping(network, host):
