@@ -19,6 +19,12 @@ I may take it up again in the future, but likely it will be replaced with someth
 
 ## Operation
 ### Simple, routine controls
+1. Create and run virtual environment:  
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```  
+
 * For routine commands use the "simple.py" module
 * From the command line, run `python3 simple.py -h` for help.
 * Node wlan0 ip addresses are kept in a separate module 

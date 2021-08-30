@@ -16,9 +16,8 @@ pi_outputs: list = []                        # holds stdout from pis
 valid_args: list = ["1", "2", "3", "4"]
 given_args: list = []                        # holds args from command line
 message: list = ["Please choose any combo of the nodes (1 2 3 or 4).",
-                 "\n", "You can choose a maximum of four nodes at a time.",
-                 "\n", "Leave blank to choose all.",
-                 "\n"]
+                 "You can choose a maximum of four nodes at a time.",
+                 "Leave blank to choose all."]
 
 
 def not_none(args: list) -> bool:
@@ -145,6 +144,10 @@ def apply_to_each(f: Any, args: list) -> None:
         f(arg)
     return None
 
+def any_args(args) -> bool:
+    """If any args returns True."""
+    return any([arg[1] for arg in args._get_kwargs()])
+
 
 def run_simple(args: Any) -> None:
     """Runs a simple command. Returns None."""
@@ -170,10 +173,11 @@ if __name__ == "__main__":
     cluster: List = addresses()
 
     parser = ap.ArgumentParser(description="Commands for the pi-cluster.")
-    parser.add_argument("-v", "--verbose", help="Be verbose.", action="store_true")
+#     parser.add_argument("-v", "--verbose", help="Be verbose.", action="store_true")
 
     # simple, common commands
     simple = parser.add_mutually_exclusive_group()
+    simple.add_argument("-v", "--verbose",  help="Be verbose.",                 action="store_true")
     simple.add_argument("-r", "--reboot",   help="Reboots the cluster.",        nargs="?")
     simple.add_argument("-s", "--shutdown", help="Shuts down the cluster.",     nargs="?", const=valid_args)
     simple.add_argument("-n", "--name",     help="Displays name of the node.",  nargs="?", const=valid_args)
@@ -186,7 +190,13 @@ if __name__ == "__main__":
     print()
     a = list(filter(not_none, args._get_kwargs()))
 
-    run_simple(args)
+    if any_args(args):
+        run_simple(args)
+    else:
+        for line in message:
+            print(line.strip())
+
+
 
     # End program
-    parser.exit(status=0, message="Finished.\n")
+    parser.exit(status=0, message="Program quitting....\n")
